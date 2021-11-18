@@ -5,6 +5,7 @@ import sys
 
 # Tuto pour avoir une bonne base de notre GUI : 
 # https://soniakopel.wordpress.com/2017/11/15/network-visualization-with-networkx-tutorial/
+# https://towardsdatascience.com/python-interactive-network-visualization-using-networkx-plotly-and-dash-e44749161ed7
 
 
 def window_screen():
