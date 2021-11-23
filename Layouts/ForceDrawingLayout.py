@@ -30,7 +30,7 @@ for edge in G.edges():
 edge_trace = go.Scatter(
     x=edge_x, y=edge_y,
     line=dict(width=0.5, color='#888'),
-    hoverinfo='text',
+    hoverinfo='none',
     mode='lines')
 
 node_x = []
@@ -62,6 +62,7 @@ node_trace = go.Scatter(
         ),
         line_width=2))
 
+# Color and text vectors for the nodes
 node_adjacencies = []
 node_text = []
 for node, adjacencies in enumerate(G.adjacency()):
@@ -73,7 +74,7 @@ node_trace.text = node_text
 
 fig = go.Figure(data=[edge_trace, node_trace],
              layout=go.Layout(
-                title='<br>Network graph made with Python',
+                title='<br>Force-drawing layout',
                 titlefont_size=16,
                 showlegend=False,
                 hovermode='closest',
