@@ -18,7 +18,9 @@ data_interactions = pd.read_csv(
 n_sample = 50
 G = nx.from_pandas_edgelist(
     data_interactions[:][:n_sample], 'BioGRID ID Interactor A', 'BioGRID ID Interactor B', edge_attr=True)
-app = dash.Dash(__name__)
+
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "BIOGRID PROJECT"
 
 # construction de nos nodes et edges pour le dash cytoscape
@@ -41,25 +43,80 @@ elements = nodes + edges
 
 
 app.layout = html.Div([
-    html.Div([
-        html.I("Select a layout"),
-    ]),
-  dcc.RadioItems(
-        id='radio-update-layout',
-    options=[
-        {'label': name.capitalize(), 'value': name}
-        for name in ['grid', 'random', 'circle', 'cose', 'concentric']
-    ],
-    value='grid'
-),
-    cyto.Cytoscape(
-        id='cytoscape-update-layout',
-        layout={'name': 'grid'},
-        style={'width': '100%', 'height': '1000px'},
-        elements=elements,
-        responsive=True
+    html.Div([dcc.Upload(html.A('Import File'))],
+             className="row",
+             ),
+    html.Hr(),
+    html.Div(
+        className="row",
+        children=[
+            html.Div(
+                className="two columns",
+                children=[
+                    html.I("Select a layout"),
+                    dcc.RadioItems(
+                        id='radio-update-layout',
+                        options=[
+                            {'label': name.capitalize(), 'value': name}
+                            for name in ['grid', 'random', 'circle', 'cose', 'concentric']
+                        ],
+                        value='grid'
+                    )
+                ]
+            ),
+            html.Div(
+                className="eight columns",
+                children=[
+                    cyto.Cytoscape(
+                        id='cytoscape-update-layout',
+                        layout={'name': 'grid'},
+                        style={'width': '100%', 'height': '800px'},
+                        elements=elements,
+                        responsive=True,
+                    ),
+                    html.Div(
+                        className='twelve columns',
+                        children=[
+                            html.I("Place for the style modification etc"),
+                        ],
+                        style={'height': '100px'})],
+            ),
+            html.Div(
+                className="two columns",
+                children=[
+                    html.Div(
+                        className='twelve columns',
+                        children=[
+                            html.I("Network metric"),
+                            html.Pre(id='hover-data')
+                        ],
+                        style={'height': '400px'}),
+                ]
+            )
+        ]
     )
 ])
+
+# html.Div([
+#     html.Div([
+#         html.I("Select a layout"),
+#     ]),
+#   dcc.RadioItems(
+#         id='radio-update-layout',
+#     options=[
+#         {'label': name.capitalize(), 'value': name}
+#         for name in ['grid', 'random', 'circle', 'cose', 'concentric']
+#     ],
+#     value='grid'
+# ),
+#     cyto.Cytoscape(
+#         id='cytoscape-update-layout',
+#         layout={'name': 'grid'},
+#         style={'width': '100%', 'height': '1000px'},
+#         elements=elements,
+#         responsive=True
+#     )
+# ])
 
 # fonctions de callback pour le changement dynamique de layout
 
