@@ -2,8 +2,12 @@ import dash
 import dash_cytoscape as cyto
 from dash import html,dcc
 from dash.dependencies import Input, Output
+import json
 import networkx as nx
 import pandas as pd
+from rightSide import *
+from leftSide import *
+from visualisationPannel import *
 
 data_chemicals = pd.read_csv(
     'Data\\BIOGRID-PROJECT-glioblastoma_project-CHEMICALS.chemtab.csv', delimiter=";")
@@ -43,80 +47,19 @@ elements = nodes + edges
 
 
 app.layout = html.Div([
-    html.Div([dcc.Upload(html.A('Import File'))],
+    html.Div([dcc.Upload(html.A('Import File'),accept='csv')],
              className="row",
              ),
     html.Hr(),
     html.Div(
         className="row",
         children=[
-            html.Div(
-                className="two columns",
-                children=[
-                    html.I("Select a layout"),
-                    dcc.RadioItems(
-                        id='radio-update-layout',
-                        options=[
-                            {'label': name.capitalize(), 'value': name}
-                            for name in ['grid', 'random', 'circle', 'cose', 'concentric']
-                        ],
-                        value='grid'
-                    )
-                ]
-            ),
-            html.Div(
-                className="eight columns",
-                children=[
-                    cyto.Cytoscape(
-                        id='cytoscape-update-layout',
-                        layout={'name': 'grid'},
-                        style={'width': '100%', 'height': '800px'},
-                        elements=elements,
-                        responsive=True,
-                    ),
-                    html.Div(
-                        className='twelve columns',
-                        children=[
-                            html.I("Place for the style modification etc"),
-                        ],
-                        style={'height': '100px'})],
-            ),
-            html.Div(
-                className="two columns",
-                children=[
-                    html.Div(
-                        className='twelve columns',
-                        children=[
-                            html.I("Network metric"),
-                            html.Pre(id='hover-data')
-                        ],
-                        style={'height': '400px'}),
-                ]
-            )
+            rightBar,
+            createPanel(elements),
+            leftSide
         ]
     )
 ])
-
-# html.Div([
-#     html.Div([
-#         html.I("Select a layout"),
-#     ]),
-#   dcc.RadioItems(
-#         id='radio-update-layout',
-#     options=[
-#         {'label': name.capitalize(), 'value': name}
-#         for name in ['grid', 'random', 'circle', 'cose', 'concentric']
-#     ],
-#     value='grid'
-# ),
-#     cyto.Cytoscape(
-#         id='cytoscape-update-layout',
-#         layout={'name': 'grid'},
-#         style={'width': '100%', 'height': '1000px'},
-#         elements=elements,
-#         responsive=True
-#     )
-# ])
 
 # fonctions de callback pour le changement dynamique de layout
 
@@ -128,6 +71,13 @@ def update_layout(layout):
         'name': layout,
         'animate': True
     }
+
+
+# @app.callback(Input('cytoscape-update-layout','element'),
+#             Output('hover-data','children'))
+
+# def display_gene_infos():
+#     return json.dumps(hoverData,indent=2)
 
 
 if __name__ == '__main__':
