@@ -4,9 +4,9 @@
 
 ### Taches à réaliser :
 
-- [ ] Comprendre le dataset fourni 
-- [ ] Sélectionner une liste de layout et d'algorithme à implémenter
-- [ ] Choix de librairie et structuration du projet
+- [X] Comprendre le dataset fourni 
+- [X] Sélectionner une liste de layout et d'algorithme à implémenter
+- [X] Choix de librairie et structuration du projet
 
 
 ### Application features :
@@ -18,7 +18,7 @@ interact with it.
 
 - [ ] A user is able to employ several different layout algorithms. Change the parameters of the algorithm
 
-- [ ] A user is able to display multiple views of a network using different layouts
+- [X] A user is able to display multiple views of a network using different layouts
 
 - [ ] A user i able to compute some basic properties and metrics of a network
 
