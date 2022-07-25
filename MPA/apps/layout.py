@@ -9,13 +9,13 @@ import pandas as pd
 from app import app
 
 data_chemicals = pd.read_csv(
-    'First session\Data\BIOGRID-PROJECT-glioblastoma_project-CHEMICALS.chemtab.csv', delimiter=";")
+    'Data\BIOGRID-PROJECT-glioblastoma_project-CHEMICALS.chemtab.csv', delimiter=";")
 data_PTM = pd.read_csv(
-    'First session\Data\BIOGRID-PROJECT-glioblastoma_project-PTM.ptmtab.csv', delimiter=";")
+    'Data\BIOGRID-PROJECT-glioblastoma_project-PTM.ptmtab.csv', delimiter=";")
 data_genes = pd.read_csv(
-    'E:\EPL_Master\Q1\Data visualization\BIOGRID-PROJECT\First session\Data\BIOGRID-PROJECT-glioblastoma_project-GENES.projectindex.csv', delimiter=";")
+    'Data\BIOGRID-PROJECT-glioblastoma_project-GENES.projectindex.csv', delimiter=";")
 data_interactions = pd.read_csv(
-    'First session\Data\BIOGRID-PROJECT-glioblastoma_project-INTERACTIONS.tab3.csv', delimiter=";")
+    'Data\BIOGRID-PROJECT-glioblastoma_project-INTERACTIONS.tab3.csv', delimiter=";")
 
 # Graph construction
 n_sample = 50
