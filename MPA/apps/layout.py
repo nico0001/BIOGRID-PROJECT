@@ -37,16 +37,14 @@ edges = [
 ]
 elements = nodes + edges
 
-mytitle = dcc.Markdown(
-    id="title", children='# BIOGRID PROJECT-INFORMATION VISUALISATION')
 
 colorPick = html.Div([daq.ColorPicker(id='color-picker',
                                       label='Node color picker',
                                       value=dict(hex='#FEF122'))])
 
-colorPick2 = html.Div([daq.ColorPicker(id='color-picker2',
+colorPick2 = html.Div([daq.ColorPicker(id='edgeColor',
                                       label='Edge color picker',
-                                      value=dict(hex='#FFFFFF'))])
+                                      value=dict(hex='#Fc2ed2'))])
 
 # Visualisation pannel
 mygraph = cyto.Cytoscape(
@@ -57,9 +55,10 @@ mygraph = cyto.Cytoscape(
                  'style': {
                      'background-color': "black"
                  }},
-                {'selector': 'edges',
+                {'selector': 'edge',
                  'style': {
-                     'background-color': "white"
+                     'line-color': "blue",
+                     'label': 'test'
                  }}
                  ]
 )
@@ -70,8 +69,7 @@ dropdown = dcc.Dropdown(id="layout-drop", options=[{'label': name.upper(), 'valu
                         value='circle',
                         clearable=False)
 
-layout = dbc.Container([dbc.Row([
-    dbc.Col([mytitle], width=10)], justify='center'),
+layout = dbc.Container([
     dbc.Row([
         dbc.Col([dropdown], width=4)], justify='center'),
     dbc.Row([
@@ -95,12 +93,18 @@ def update_layout(layout):
 
 @app.callback(Output('cytoscape-update-layout', 'stylesheet'),
               Input('color-picker', 'value'),
-              Input('color-picker2', 'value'))
+              Input('edgeColor', 'value'))
 def update_layout(clr,clr2):
     return [{
         'selector': 'node',
         'style': {
             'background-color': clr["hex"]
+        }
+    },
+        {
+        'selector': 'edge',
+        'style': {
+            'line-color': clr2["hex"]
         }
     }]
 

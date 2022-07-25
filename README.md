@@ -22,6 +22,6 @@ interact with it.
 
 - [ ] A user i able to compute some basic properties and metrics of a network
 
-- [ ] A user is able to change the color and the size of the nodes and edges 
+- [X] A user is able to change the color and the size of the nodes and edges 
 
 - [ ] A user is able to filter some nodes and edges  

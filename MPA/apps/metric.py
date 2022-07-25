@@ -68,9 +68,6 @@ edges = [
 ]
 elements = nodes + edges
 
-mytitle = dcc.Markdown(
-    id="title", children='# BIOGRID PROJECT-INFORMATION VISUALISATION')
-
 # Visualisation pannel
 mygraph = cyto.Cytoscape(
     id='cytoscape-update-layout',
@@ -94,8 +91,7 @@ metric = dcc.Dropdown(id="metric-drop", options=[{'label': name.upper(), 'value'
                       placeholder="Select a metric",
                       clearable=False)
 
-layout = dbc.Container([dbc.Row([
-    dbc.Col([mytitle], width=10)], justify='center'),
+layout = dbc.Container([
     dbc.Row([
         dbc.Col([metric], width=4)], justify='center'),
     dbc.Row([
