@@ -18,9 +18,8 @@ data_interactions = pd.read_csv(
     'Data\BIOGRID-PROJECT-glioblastoma_project-INTERACTIONS.tab3.csv', delimiter=";")
 
 # Graph construction
-n_sample = 50
-G = nx.from_pandas_edgelist(
-    data_interactions[:][:n_sample], 'BioGRID ID Interactor A', 'BioGRID ID Interactor B', edge_attr=True)
+n_sample = 500
+G = nx.from_pandas_edgelist(data_interactions[:][:n_sample], 'BioGRID ID Interactor A', 'BioGRID ID Interactor B', edge_attr=True)
 
 # construction de nos nodes et edges pour le dash cytoscape
 nodes = [
@@ -31,9 +30,9 @@ nodes = [
 ]
 edges = [
     {
-        'data': {'source': str(source), 'target': str(target)}
+        'data': {'id': str(data['#BioGRID Interaction ID']), 'source': str(source), 'target': str(target)}
     }
-    for source, target in G.edges
+    for source, target, data in G.edges.data()
 ]
 elements = nodes + edges
 
@@ -47,20 +46,22 @@ colorPick2 = html.Div([daq.ColorPicker(id='edgeColor',
                                       value=dict(hex='#Fc2ed2'))])
 
 # Visualisation pannel
+
+default_stylesheet = [{'selector': 'node',
+                       'style': {
+                           'background-color': "black"
+                       }},
+                      {'selector': 'edge',
+                       'style': {
+                           'line-color': "blue",
+                       }}
+                      ]
+
 mygraph = cyto.Cytoscape(
     id='cytoscape-update-layout',
     elements=elements,
     responsive=True,
-    stylesheet=[{'selector': 'node',
-                 'style': {
-                     'background-color': "black"
-                 }},
-                {'selector': 'edge',
-                 'style': {
-                     'line-color': "blue",
-                     'label': 'test'
-                 }}
-                 ]
+    stylesheet=default_stylesheet
 )
 
 # Layout selection
@@ -76,7 +77,9 @@ layout = dbc.Container([
         dbc.Col([mygraph], width=8),
         dbc.Col([colorPick], width=2),
         dbc.Col([colorPick2], width=2)
-    ], justify='center')], fluid=True)
+    ], justify='center'),
+    dbc.Row(html.Div(html.P(id="nodeClick"))),
+    dbc.Row(html.Div(html.P(id="edgeClick")))], fluid=True)
 
 # fonctions de callback pour le changement dynamique de layout
 
@@ -95,7 +98,8 @@ def update_layout(layout):
               Input('color-picker', 'value'),
               Input('edgeColor', 'value'))
 def update_layout(clr,clr2):
-    return [{
+
+    new_styles = [{
         'selector': 'node',
         'style': {
             'background-color': clr["hex"]
@@ -108,3 +112,41 @@ def update_layout(clr,clr2):
         }
     }]
 
+    return default_stylesheet + new_styles
+
+
+@app.callback(Output('nodeClick', 'children'),
+              Input('cytoscape-update-layout', 'tapNodeData'))
+def displayTapNodeData(data):
+    if data:
+        return "You recently clicked the gene with ID: " + str(data["id"]) + " and Degree:" + str(data["size"])
+
+
+@app.callback(Output('edgeClick', 'children'),
+              Input('cytoscape-update-layout', 'tapEdgeData'))
+def displayTapEdgeData(data):
+    if data:
+        for edge in G.edges.data():
+            check1 = (int(edge[0]) == int(
+                data['source']))
+            check2 = (int(edge[1]) == int(
+                data['target']))
+            check3 = (int(edge[0]) == int(
+                data['target']))
+            check4 = (int(edge[1]) == int(
+                data['source']))
+            if (check1 and check2) or (check3 and check4):
+                return html.Table(
+                            [html.Tr([html.Th("Attribute"), html.Th("Gene data")])] +
+                            [html.Tr([
+                                html.Td(
+                                    i
+                                ),
+                                html.Td(
+                                    edge[2][i]
+                                )
+                            ]) for i in edge[2]]
+                        )
+        return html.Table(
+                [html.Tr([html.Th("Attribute"), html.Th("Information")])]
+            )
