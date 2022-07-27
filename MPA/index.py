@@ -7,13 +7,22 @@ from apps import metric, layout
 
 navbar = dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("Layout", href="/apps/layout")),
+        dbc.Button(
+            "Import genes",
+            color="primary",
+            id="button",
+            className="mb-3",
+        ), dbc.Button(
+            "Import interactions",
+            color="primary",
+            id="button2",
+            className="mb-3",
+        ),
         dbc.NavItem(dbc.NavLink("Metric", href="/apps/metric")),
     ],
     brand="BIOGRID PROJECT-INFORMATION VISUALISATION",
     brand_href="#",
     color="primary",
-    dark=True,
 )
 
 app.layout = html.Div([
