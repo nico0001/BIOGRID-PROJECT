@@ -9,8 +9,9 @@ import networkx as nx
 import pandas as pd
 import numpy as np
 from sympy import Id
-
 from app import app
+
+
 
 data_chemicals = pd.read_csv(
     'Data\BIOGRID-PROJECT-glioblastoma_project-CHEMICALS.chemtab.csv', delimiter=";")
@@ -103,7 +104,7 @@ controls = dbc.Card(
             [
                 dbc.Label("Select a Layout"),
                 dcc.Dropdown(id="layout-drop", options=[{'label': name.upper(), 'value': name}
-                                                        for name in ['grid', 'random', 'circle', 'cose', 'concentric']],
+                                                        for name in ['grid', 'random', 'circle', 'cose', 'concentric','breadthfirst']],
                              value='circle',
                              clearable=False)
             ]
@@ -171,7 +172,7 @@ def update_metric(m, node):
             )
             return (out, default_stylesheet)
 
-        if m == "Betweenness centrality":
+        if m == "betweenness centrality":
             out = dbc.Alert(
                 [
                     "The Betweenness Centrality of the graph is ",
@@ -202,6 +203,20 @@ def update_metric(m, node):
                         })
 
             return ("Minimum spanning tree is shown on the graph", default_stylesheet+newStyle)
+
+        if m == "community":
+            list_commu = community(G)
+            newStyle = []
+            for i, commu in enumerate(list_commu) :
+                random_color=tuple(np.random.choice(range(255),size=3))
+                for node in commu :
+                    newStyle.append({"selector": 'node[id*= "{}"]'.format(node),
+                            "style": {
+                                "background-color": "rgb{}".format(random_color),
+                                'z-index': 5000
+                            }
+                        })
+            return (str(len(list_commu))+" communities are shown on the graph", default_stylesheet+newStyle)
 
         return "here", default_stylesheet
     elif outTrigger == "cytoscape-update-layout":

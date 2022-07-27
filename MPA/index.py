@@ -17,8 +17,7 @@ navbar = dbc.NavbarSimple(
             color="primary",
             id="button2",
             className="mb-3",
-        ),
-        dbc.NavItem(dbc.NavLink("Metric", href="/apps/metric")),
+        )
     ],
     brand="BIOGRID PROJECT-INFORMATION VISUALISATION",
     brand_href="#",
@@ -33,12 +32,7 @@ app.layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/apps/metric':
-        return metric.layout
-    elif pathname == '/apps/layout':
-        return layout.layout
-    else:
-        return '404'
+    return layout.layout
 
 if __name__ == '__main__':
     app.run_server(debug=True)
