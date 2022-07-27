@@ -173,14 +173,20 @@ def update_metric(m, node):
             return (out, default_stylesheet)
 
         if m == "betweenness centrality":
-            out = dbc.Alert(
-                [
-                    "The Betweenness Centrality of the graph is ",
-                    betweenness_centrality(G),
-                ],
-                color="danger",
-            )
-            return (out, default_stylesheet)
+            b_central = betweenness_centrality(G)
+            min = np.min(list(b_central.values()))
+            max = np.max(list(b_central.values()))
+            newStyle = []
+            for node, b_cent in b_central.items():
+                color = (b_cent*230/max,b_cent*20/max,b_cent*28/max)
+                newStyle.append({"selector": 'node[id*= "{}"]'.format(node),
+                            "style": {
+                                "background-color": "rgb{}".format(color),
+                                'z-index': 5000
+                            }
+                        })
+
+            return ("Betweenness centralities between {:.3f} (black) and {:.3f} (red) are shown on the graph".format(min,max), default_stylesheet+newStyle)
 
         if (m == 'minimum spanning tree'):
             edges = minimum_spanning_tree(G)
