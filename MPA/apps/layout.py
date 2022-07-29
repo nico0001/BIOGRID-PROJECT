@@ -23,7 +23,7 @@ data_interactions = pd.read_csv(
     'Data\BIOGRID-PROJECT-glioblastoma_project-INTERACTIONS.tab3.csv', delimiter=";")
 
 # Graph construction
-n_sample = 500
+n_sample = 250
 G = nx.from_pandas_edgelist(
     data_interactions[:][:n_sample], 'BioGRID ID Interactor A', 'BioGRID ID Interactor B', edge_attr=True)
 
@@ -207,8 +207,14 @@ def update_metric(m, node):
                                 'z-index': 5000
                             }
                         })
+            out = dbc.Alert(
+                [
+                    "Minimum spanning tree is shown on the graph"
+                ],
+                color="success",
+            )
 
-            return ("Minimum spanning tree is shown on the graph", default_stylesheet+newStyle)
+            return (out, default_stylesheet+newStyle)
 
         if m == "community":
             list_commu = community(G)
@@ -222,9 +228,15 @@ def update_metric(m, node):
                                 'z-index': 5000
                             }
                         })
-            return (str(len(list_commu))+" communities are shown on the graph", default_stylesheet+newStyle)
+            out = dbc.Alert(
+                [
+                    str(len(list_commu))," communities are shown on the graph"
+                ],
+                color="success",
+            )
+            return (out, default_stylesheet+newStyle)
 
-        return "here", default_stylesheet
+        return " ", default_stylesheet
     elif outTrigger == "cytoscape-update-layout":
         if node:
             children_style = [{
@@ -234,9 +246,9 @@ def update_metric(m, node):
                 }
             }]
 
-            return ("here", default_stylesheet + children_style)
-        return ("here", default_stylesheet)
-    return ("here", default_stylesheet)
+            return (" ", default_stylesheet + children_style)
+        return (" ", default_stylesheet)
+    return (" ", default_stylesheet)
 
 
 """ @app.callback(Output('cytoscape-update-layout', 'stylesheet'),
@@ -310,7 +322,7 @@ def displayTapEdgeData(data):
                         )
                     ]) for i in edge[2]]
                 )
-                return dbc.Table(tmp, bordered=True, hover=True,
+                return dbc.Table(tmp, bordered=True, hover=True, color="primary",
                                  responsive=True,
                                  striped=True,)
         return html.Table(

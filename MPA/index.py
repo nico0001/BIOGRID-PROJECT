@@ -7,17 +7,19 @@ from apps import metric, layout
 
 navbar = dbc.NavbarSimple(
     children=[
-        dbc.Button(
+        dcc.Upload(id="upload-node",
+            children=dbc.Button(
             "Import genes",
-            color="primary",
+            color="danger",
             id="button",
-            className="mb-3",
-        ), dbc.Button(
+            className="me-1",
+        ),accept="CSV"), dcc.Upload(id="upload-edge",
+            children=dbc.Button(
             "Import interactions",
-            color="primary",
+            color="danger",
             id="button2",
-            className="mb-3",
-        )
+            className="me-1",
+        ), accept="CSV")
     ],
     brand="BIOGRID PROJECT-INFORMATION VISUALISATION",
     brand_href="#",
