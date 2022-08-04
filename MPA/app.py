@@ -158,7 +158,7 @@ navbar = dbc.Navbar(
             )
         ]
     ),
-    color="dark",
+    color="warning",
     dark=True,
 )
 
