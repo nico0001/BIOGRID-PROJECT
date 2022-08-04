@@ -18,8 +18,9 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SOLAR])
 server = app.server
 app.config.suppress_callback_exceptions = True
 
-#du.configure_upload(app, r'C:\tmp\uploads')
+du.configure_upload(app, r'E:\tmp\uploads')
 
+PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
 data_chemicals = pd.read_csv(
     'Data\BIOGRID-PROJECT-glioblastoma_project-CHEMICALS.chemtab.csv', delimiter=";")
@@ -31,7 +32,7 @@ data_interactions = pd.read_csv(
     'Data\BIOGRID-PROJECT-glioblastoma_project-INTERACTIONS.tab3.csv', delimiter=";")
 
 # Graph construction
-n_sample = 250
+n_sample = 500
 G = nx.from_pandas_edgelist(
     data_interactions[:][:n_sample], 'BioGRID ID Interactor A', 'BioGRID ID Interactor B', edge_attr=True)
 
@@ -48,16 +49,9 @@ edges = [
     }
     for source, target, data in G.edges.data()
 ]
+
 elements = nodes + edges
 
-""" 
-colorPick = html.Div([daq.ColorPicker(id='color-picker',
-                                      label='Node color picker',
-                                      value=dict(hex='#FEF122'))])
-
-colorPick2 = html.Div([daq.ColorPicker(id='edgeColor',
-                                      label='Edge color picker',
-                                      value=dict(hex='#Fc2ed2'))]) """
 
 # metric algo definitions
 
@@ -112,7 +106,7 @@ controls = dbc.Card(
             [
                 dbc.Label("Select a Layout"),
                 dcc.Dropdown(id="layout-drop", options=[{'label': name.upper(), 'value': name}
-                                                        for name in ['grid', 'random', 'circle', 'cose', 'concentric', 'breadthfirst']],
+                                                        for name in ['grid', 'circle', 'cose', 'concentric', 'breadthfirst']],
                              value='circle',
                              clearable=False)
             ]
@@ -120,52 +114,56 @@ controls = dbc.Card(
         html.Div(
             [
                 dbc.Label("Select a metric"),
-                dcc.Dropdown(id="metric-drop", options=[{'label': name.upper(), 'value': name} for name in ['betweenness centrality', 'clustering coefficient', 'minimum spanning tree', 'shortest path', 'community']],
+                dcc.Dropdown(id="metric-drop", options=[{'label': name.upper(), 'value': name} for name in ['clustering coefficient', 'minimum spanning tree', 'betweenness centrality', 'community']],
                              placeholder="Select a metric",
                              clearable=False),
             ]
         ),
         html.Div(
             [
-                dbc.Label("Filter nodes"),
-                dbc.Input(id="cluster-count", type="number", value=3),
+                dbc.Label("Filter nodes by degree"),
+                dcc.Slider(min=1, max=10, step=1, value=1, marks={
+                    1: {'label': '1', 'style': {'color': '#77b0b1'}},
+                    2: {'label': '2'},
+                    3: {'label': '3'},
+                    4: {'label': '4'},
+                    5: {'label': '5'},
+                    6: {'label': '6'},
+                    7: {'label': '7'},
+                    8: {'label': '8'},
+                    9: {'label': '9'},
+                    10: {'label': '10', 'style': {'color': '#f50'}}
+                }, id='filter-node'),
             ]
         ),
     ],
     body=True,
 )
-navbar = dbc.NavbarSimple(
-    children=[
-        dcc.Upload(id="upload-nodes",
-                   children=dbc.Button(
-                       "Import genes",
-                       color="danger",
-                       id="button",
-                       className="me-1",
-                   ), multiple=False),
-        dcc.Upload(id="upload-edges",
-                   children=dbc.Button(
-                       children="test",
-                       color="danger",
-                       id="button2",
-                       className="me-1",
-                   ),
-                   multiple=False),
-        dbc.Button(
-            children="Load data",
-            color="success",
-            id="button3",
-            className="me-1",
-        )
-    ],
-    brand="Glioblastoma Gene Interaction Visualization Dashboard",
-    brand_href="#",
-    color="primary",
+navbar = dbc.Navbar(
+    dbc.Container(
+        [
+            html.A(
+                # Use row and col to control vertical alignment of logo / brand
+                dbc.Row(
+                    [
+                        dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
+                        dbc.Col(dbc.NavbarBrand(
+                            "Glioblastoma Gene Interaction Visualization Dashboard", className="ms-2")),
+                    ],
+                    align="center",
+                    className="g-0",
+                ),
+                href="#",
+                style={"textDecoration": "none"},
+            )
+        ]
+    ),
+    color="dark",
+    dark=True,
 )
 
 app.layout = dbc.Container([
     navbar,
-    html.Hr(),
     dbc.Row(
         [
             dbc.Col(controls, md=4),
@@ -177,7 +175,7 @@ app.layout = dbc.Container([
     dbc.Row(html.Div(html.P(id="nodeClick"))),
     dbc.Row(dbc.Col(html.P(id="edgeClick"), width=12)),
     dbc.Row(html.Div(html.P(id="output-data-upload")))],
-    #dcc.Store(id="interaction-value")],
+    # dcc.Store(id="interaction-value")],
     fluid=True)
 
 # fonctions de callback pour le changement dynamique de layout
@@ -227,14 +225,6 @@ def upload_test(contents, filename):
         return "essai"
 
 
-""" @app.callback(Output('button2', 'children'),
-              Input('upload-edge', 'contents'))
-def upload_int(list_of_contents):
-    if list_of_contents:
-        print(list_of_contents)
-    return "yes" """
-
-
 @app.callback([Output('metricOutput', 'children'),
               Output('cytoscape-update-layout', 'stylesheet')],
               Input('metric-drop', 'value'),
@@ -245,10 +235,10 @@ def update_metric(m, node):
         if m == "clustering coefficient":
             out = dbc.Alert(
                 [
-                    "The Clustering Coefficient of the graph is ",
+                    "The Clustering Coefficient of the initial graph is ",
                     clustering_coefficient(G),
                 ],
-                color="danger",
+                color="success",
             )
             return (out, default_stylesheet)
 
@@ -265,8 +255,15 @@ def update_metric(m, node):
                                 'z-index': 5000
                                 }
                 })
+            out = dbc.Alert(
+                [
+                    "Betweenness centralities between {:.3f} (black) and {:.3f} (red) are shown on the graph".format(
+                        min, max), 
+                ],
+                color="success",
+            )
 
-            return ("Betweenness centralities between {:.3f} (black) and {:.3f} (red) are shown on the graph".format(min, max), default_stylesheet+newStyle)
+            return out, default_stylesheet+newStyle
 
         if (m == 'minimum spanning tree'):
             edges = minimum_spanning_tree(G)
@@ -310,7 +307,7 @@ def update_metric(m, node):
                     })
             out = dbc.Alert(
                 [
-                    str(len(list_commu)), " communities are shown on the graph"
+                    str(len(list_commu)), " communities are present on the initial graph"
                 ],
                 color="success",
             )
@@ -322,7 +319,7 @@ def update_metric(m, node):
             children_style = [{
                 'selector': 'edge[source *= "{}"]'.format(node["id"]),
                 'style': {
-                    'line-color': 'red'
+                    'line-color': 'green'
                 }
             }]
 
@@ -331,50 +328,40 @@ def update_metric(m, node):
     return (" ", default_stylesheet)
 
 
-""" @app.callback(Output('cytoscape-update-layout', 'stylesheet'),
-              Input('color-picker', 'value'),
-              Input('edgeColor', 'value'))
-def update_layout(clr,clr2):
-
-    new_styles = [{
-        'selector': 'node',
-        'style': {
-            'background-color': clr["hex"]
-        }
-    },
-        {
-        'selector': 'edge',
-        'style': {
-            'line-color': clr2["hex"]
-        }
-    }]
-
-    return default_stylesheet + new_styles
- """
-
-
 @app.callback(Output('nodeClick', 'children'),
               Input('cytoscape-update-layout', 'tapNodeData'))
 def displayTapNodeData(data):
     if data:
-        return "You recently clicked the gene with ID: " + str(data["id"]) + " and Degree:" + str(data["size"])
+        out = dbc.Alert(
+            [
+                "You recently clicked the gene with ID: " +
+                str(data["id"]) + " and Degree:" + str(data["size"])
+            ],
+            color="warning",
+        )
+        return out
 
 
-""" @app.callback(Output('cytoscape-update-layout', 'stylesheet'),
-              Input('cytoscape-update-layout', 'tapNodeData'))
-def color_children(node):
-    if node:
-        children_style = [{
-            'selector': 'edge[source *= "{}"]'.format(node["id"]),
-            'style': {
-                'line-color': 'red'
+@app.callback(Output('cytoscape-update-layout', 'elements'), Input('filter-node', 'value'))
+def filterNode(value):
+    if value >= 1:
+        test = G.copy()
+        node = list(filter(lambda x: test.degree[x] < value, test.nodes))
+        test.remove_nodes_from(node)
+        nodes = [
+            {
+                'data': {'id': str(node), 'size': G.degree[node]},
             }
-        }]
+            for node in test
+        ]
 
-        return default_stylesheet + children_style
-    return default_stylesheet
-    
- """
+        edges = [
+            {
+                'data': {'id': str(data['#BioGRID Interaction ID']), 'source': str(source), 'target': str(target)}
+            }
+            for source, target, data in test.edges.data()
+        ]
+    return nodes + edges
 
 
 @app.callback(Output('edgeClick', 'children'),
@@ -392,7 +379,7 @@ def displayTapEdgeData(data):
                 data['source']))
             if (check1 and check2) or (check3 and check4):
                 tmp = html.Table(
-                    [html.Tr([html.Th("Attribute"), html.Th("Gene informations")])] +
+                    [html.Tr([html.Th("Attribute"), html.Th("Informations")])] +
                     [html.Tr([
                         html.Td(
                             i
