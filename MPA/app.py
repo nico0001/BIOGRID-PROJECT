@@ -18,7 +18,10 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SOLAR])
 server = app.server
 app.config.suppress_callback_exceptions = True
 
-du.configure_upload(app, r'E:\tmp\uploads')
+
+
+
+
 
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
@@ -32,25 +35,26 @@ data_interactions = pd.read_csv(
     'Data\BIOGRID-PROJECT-glioblastoma_project-INTERACTIONS.tab3.csv', delimiter=";")
 
 # Graph construction
-n_sample = 500
-G = nx.from_pandas_edgelist(
-    data_interactions[:][:n_sample], 'BioGRID ID Interactor A', 'BioGRID ID Interactor B', edge_attr=True)
+def make_graph(file, n_sample = 200) :
+    G = nx.from_pandas_edgelist(
+        file[:][:n_sample], 'BioGRID ID Interactor A', 'BioGRID ID Interactor B', edge_attr=True)
 
-# construction de nos nodes et edges pour le dash cytoscape
-nodes = [
-    {
-        'data': {'id': str(node), 'size': G.degree[node]},
-    }
-    for node in G.nodes
-]
-edges = [
-    {
-        'data': {'id': str(data['#BioGRID Interaction ID']), 'source': str(source), 'target': str(target)}
-    }
-    for source, target, data in G.edges.data()
-]
+    # construction de nos nodes et edges pour le dash cytoscape
+    nodes = [
+        {
+            'data': {'id': str(node), 'size': G.degree[node]},
+        }
+        for node in G.nodes
+    ]
+    edges = [
+        {
+            'data': {'id': str(data['#BioGRID Interaction ID']), 'source': str(source), 'target': str(target)}
+        }
+        for source, target, data in G.edges.data()
+    ]
+    return G, edges, nodes
 
-elements = nodes + edges
+G, edges, nodes = make_graph(data_interactions)
 
 
 # metric algo definitions
@@ -94,9 +98,23 @@ default_stylesheet = [{'selector': 'node',
 
 mygraph = cyto.Cytoscape(
     id='cytoscape-update-layout',
-    elements=elements,
+    elements=nodes+edges,
     responsive=True,
     stylesheet=default_stylesheet
+)
+
+# Layout upload
+import_button = dbc.Row(
+    [   
+        dcc.Upload(
+        id='upload-data',
+        children=dbc.Button("Import file", id="open", n_clicks=0),
+        # Allow multiple files to be uploaded
+        multiple=False
+        )
+    ],
+    className="g-0 ms-auto flex-nowrap mt-3 mt-md-0",
+    align="center",
 )
 
 # Layout selection
@@ -122,7 +140,7 @@ controls = dbc.Card(
         html.Div(
             [
                 dbc.Label("Filter nodes by degree"),
-                dcc.Slider(min=1, max=10, step=1, value=1, marks={
+                dcc.Slider(min=1, max=10, step=1, value = 1, marks={
                     1: {'label': '1', 'style': {'color': '#77b0b1'}},
                     2: {'label': '2'},
                     3: {'label': '3'},
@@ -155,12 +173,20 @@ navbar = dbc.Navbar(
                 ),
                 href="#",
                 style={"textDecoration": "none"},
-            )
+            ),
+            dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
+            dbc.Collapse(
+                import_button,
+                id="navbar-collapse",
+                is_open=False,
+                navbar=True,
+            ),
         ]
     ),
     color="warning",
     dark=True,
 )
+
 
 app.layout = dbc.Container([
     navbar,
@@ -173,8 +199,8 @@ app.layout = dbc.Container([
     ),
     dbc.Row(html.Div(html.P(id="metricOutput"))),
     dbc.Row(html.Div(html.P(id="nodeClick"))),
-    dbc.Row(dbc.Col(html.P(id="edgeClick"), width=12)),
-    dbc.Row(html.Div(html.P(id="output-data-upload")))],
+    dbc.Row(dbc.Col(html.P(id="edgeClick"), width=12))],
+    # dbc.Row(html.Div(html.P(id="output-data-upload")))],
     # dcc.Store(id="interaction-value")],
     fluid=True)
 
@@ -189,40 +215,6 @@ def update_layout(layout):
         'name': layout,
         'animate': True
     }
-
-
-def parse_contents(contents, filename):
-    print(contents)
-    content_type, content_string = contents.split(',').items()
-
-    decoded = base64.b64decode(content_string)
-    try:
-        if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')))
-        elif 'xls' in filename:
-            # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded))
-    except Exception as e:
-        print(e)
-        return html.Div([
-            'There was an error processing this file.'
-        ])
-
-    return df
-
-
-@app.callback(Output('button2', 'children'),
-              Input('upload-edges', 'contents'),
-              Input('upload-edges', 'filename'))
-def upload_test(contents, filename):
-    if contents is not None:
-        print("test")
-        children = [
-            parse_contents(c, n) for c, n in
-            zip(contents, filename)]
-        return "essai"
 
 
 @app.callback([Output('metricOutput', 'children'),
@@ -341,27 +333,70 @@ def displayTapNodeData(data):
         )
         return out
 
+@app.callback(
+    Output("navbar-collapse", "is_open"),
+    [Input("navbar-toggler", "n_clicks")],
+    [State("navbar-collapse", "is_open")],
+)
+def toggle_navbar_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
-@app.callback(Output('cytoscape-update-layout', 'elements'), Input('filter-node', 'value'))
-def filterNode(value):
-    if value >= 1:
-        test = G.copy()
-        node = list(filter(lambda x: test.degree[x] < value, test.nodes))
-        test.remove_nodes_from(node)
-        nodes = [
-            {
-                'data': {'id': str(node), 'size': G.degree[node]},
-            }
-            for node in test
-        ]
 
-        edges = [
-            {
-                'data': {'id': str(data['#BioGRID Interaction ID']), 'source': str(source), 'target': str(target)}
-            }
-            for source, target, data in test.edges.data()
-        ]
-    return nodes + edges
+def parse_contents(contents, filename):
+    if contents is not None:
+        content_type, content_string = contents.split(',')
+        decoded = base64.b64decode(content_string)
+        try:
+            if 'csv' in filename:
+                # Assume that the user uploaded a CSV file
+                df = pd.read_csv(
+                    "Data/"+ filename,delimiter=";")
+            elif 'xlsx' in filename:
+                # Assume that the user uploaded an excel file
+                df = pd.read_excel(io.BytesIO(decoded))
+        except Exception as e:
+            print(e)
+            return html.Div([
+                'There was an error processing this file.'
+            ])
+
+        return df
+    else:
+        return [{}]
+
+@app.callback(Output('cytoscape-update-layout', 'elements'), [Input('filter-node', 'value'),Input('upload-data', 'contents'),
+    Input('upload-data', 'filename')])
+def filterNode(value, contents, filename):
+    outTrigger = dash.callback_context.triggered[0]['prop_id'].split('.')[0]
+    
+    if outTrigger == "upload-data" :
+        if contents is not None and filename is not None:
+            print("cc")
+            df = parse_contents(contents, filename)
+            new_G, new_edges, new_nodes = make_graph(df,500)
+            G.update(new_G)
+        return new_nodes + new_edges
+    elif outTrigger == "filter-node":
+        if value >= 1:
+            test = G.copy()
+            node = list(filter(lambda x: test.degree[x] < value, test.nodes))
+            test.remove_nodes_from(node)
+            new_nodes = [
+                {
+                    'data': {'id': str(node), 'size': G.degree[node]},
+                }
+                for node in test
+            ]
+            new_edges = [
+                {
+                    'data': {'id': str(data['#BioGRID Interaction ID']), 'source': str(source), 'target': str(target)}
+                }
+                for source, target, data in test.edges.data()
+            ]
+        return new_nodes + new_edges 
+    return nodes+edges   
 
 
 @app.callback(Output('edgeClick', 'children'),
