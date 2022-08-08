@@ -16,12 +16,12 @@ interact with it.
 
 :warning: The files are provided in a CSV format.
 
-- [ ] A user is able to employ several different layout algorithms. Change the parameters of the algorithm
+- [X] A user is able to employ several different layout algorithms. Change the parameters of the algorithm
 
 - [X] A user is able to display multiple views of a network using different layouts
 
-- [ ] A user i able to compute some basic properties and metrics of a network
+- [X] A user is able to compute some basic properties and metrics of a network
 
 - [X] A user is able to change the color and the size of the nodes and edges 
 
-- [ ] A user is able to filter some nodes and edges  
+- [X] A user is able to filter some nodes and edges  
