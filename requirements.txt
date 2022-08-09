@@ -4,7 +4,7 @@ dash_cytoscape==0.3.0
 dash_daq==0.5.0
 dash_uploader==0.7.0a1
 networkx==2.5
-numpy==1.21.4+vanilla
+numpy==1.21.4
 pandas==1.2.4
 plotly==5.4.0
 sympy==1.8
