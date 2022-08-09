@@ -1,6 +1,8 @@
+gunicorn
 dash==2.0.0
 dash_bootstrap_components==1.0.0
 dash_cytoscape==0.3.0
+dash-core-components
 dash_daq==0.5.0
 dash_uploader==0.7.0a1
 networkx==2.5
